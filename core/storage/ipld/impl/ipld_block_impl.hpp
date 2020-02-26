@@ -17,13 +17,15 @@
 #include "storage/ipld/ipld_block.hpp"
 
 namespace fc::storage::ipld {
-  using libp2p::multi::HashType;
-  using ContentType = libp2p::multi::MulticodecType::Code;
 
   /**
    * @class IPLD data structure implementation
    */
   class IPLDBlockImpl : public virtual IPLDBlock {
+   protected:
+    using HashType = libp2p::multi::HashType;
+    using ContentType = libp2p::multi::MulticodecType::Code;
+
    public:
     /**
      * @brief Construct IPLD block
