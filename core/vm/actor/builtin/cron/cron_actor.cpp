@@ -12,9 +12,17 @@ namespace fc::vm::actor::builtin::cron {
    * EpochTick
    */
   std::vector<CronTableEntry> entries = {
-      {kStoragePowerAddress, {storage_power::kOnEpochTickEndMethodNumber}}};
+      {kStoragePowerAddress, {storage_power::OnEpochTickEnd::Number}}};
 
-  ACTOR_METHOD(epochTick) {
+  const ActorExports exports = {
+      EpochTick::pair(),
+  };
+}  // namespace fc::vm::actor::builtin::cron
+
+namespace fc::vm::actor {
+  using namespace builtin::cron;
+
+  ACTOR_METHOD_IMPL(EpochTick) {
     if ((runtime.getMessage().get().from != kCronAddress)) {
       return VMExitCode::CRON_ACTOR_WRONG_CALL;
     }
@@ -24,8 +32,4 @@ namespace fc::vm::actor::builtin::cron {
     }
     return outcome::success();
   }
-
-  const ActorExports exports = {
-      {kEpochTickMethodNumber, ActorMethod(epochTick)},
-  };
-}  // namespace fc::vm::actor::builtin::cron
+}  // namespace fc::vm::actor

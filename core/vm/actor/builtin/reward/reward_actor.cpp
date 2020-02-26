@@ -14,9 +14,10 @@ using fc::adt::Multimap;
 namespace fc::vm::actor::builtin::reward {
 
   const ActorExports exports = {
-      {kAwardBlockRewardMethodNumber,
-       ActorMethod(RewardActor::awardBlockReward)},
-      {kWithdrawRewardMethodNumber, ActorMethod(RewardActor::withdrawReward)}};
+      Construct::pair(),
+      AwardBlockReward::pair(),
+      WithdrawReward::pair(),
+  };
 
   primitives::BigInt Reward::amountVested(
       const primitives::ChainEpoch &current_epoch) {
@@ -97,7 +98,19 @@ namespace fc::vm::actor::builtin::reward {
     return withdrawable_sum;
   }
 
-  ACTOR_METHOD(RewardActor::construct) {
+  TokenAmount computeBlockReward(const State &state,
+                                 const TokenAmount &balance) {
+    TokenAmount treasury = balance - state.reward_total;
+    auto target_reward = kBlockRewardTarget;
+    return std::min(target_reward, treasury);
+  }
+
+}  // namespace fc::vm::actor::builtin::reward
+
+namespace fc::vm::actor {
+  using namespace builtin::reward;
+
+  ACTOR_METHOD_IMPL(Construct) {
     if (runtime.getImmediateCaller() != kSystemActorAddress) {
       return VMExitCode::MULTISIG_ACTOR_WRONG_CALLER;
     }
@@ -110,22 +123,20 @@ namespace fc::vm::actor::builtin::reward {
     return outcome::success();
   }
 
-  ACTOR_METHOD(RewardActor::awardBlockReward) {
+  ACTOR_METHOD_IMPL(AwardBlockReward) {
     if (runtime.getImmediateCaller() != kSystemActorAddress) {
       return VMExitCode::REWARD_ACTOR_WRONG_CALLER;
     }
-    OUTCOME_TRY(reward_params,
-                decodeActorParams<AwardBlockRewardParams>(params));
-    assert(reward_params.gas_reward == runtime.getValueReceived());
+    assert(params.gas_reward == runtime.getValueReceived());
     OUTCOME_TRY(prior_balance,
                 runtime.getBalance(runtime.getMessage().get().to));
     TokenAmount penalty{0};
     OUTCOME_TRY(state, runtime.getCurrentActorStateCbor<State>());
 
-    auto block_reward = computeBlockReward(state, reward_params.gas_reward);
-    TokenAmount total_reward = block_reward + reward_params.gas_reward;
+    auto block_reward = computeBlockReward(state, params.gas_reward);
+    TokenAmount total_reward = block_reward + params.gas_reward;
 
-    penalty = std::min(reward_params.penalty, total_reward);
+    penalty = std::min(params.penalty, total_reward);
     auto reward_payable = total_reward - penalty;
 
     assert(total_reward <= prior_balance);
@@ -138,14 +149,14 @@ namespace fc::vm::actor::builtin::reward {
                         .value = reward_payable,
                         .amount_withdrawn = 0};
       OUTCOME_TRY(state.addReward(
-          runtime.getIpfsDatastore(), reward_params.miner, new_reward));
+          runtime.getIpfsDatastore(), params.miner, new_reward));
     }
     OUTCOME_TRY(runtime.sendFunds(kBurntFundsActorAddress, penalty));
     OUTCOME_TRY(runtime.commitState(state));
     return outcome::success();
   }
 
-  ACTOR_METHOD(RewardActor::withdrawReward) {
+  ACTOR_METHOD_IMPL(WithdrawReward) {
     if (not isSignableActor(actor.code)) {
       return VMExitCode::REWARD_ACTOR_WRONG_CALLER;
     }
@@ -159,12 +170,4 @@ namespace fc::vm::actor::builtin::reward {
     OUTCOME_TRY(runtime.commitState(state));
     return outcome::success();
   }
-
-  TokenAmount RewardActor::computeBlockReward(const State &state,
-                                              const TokenAmount &balance) {
-    TokenAmount treasury = balance - state.reward_total;
-    auto target_reward = kBlockRewardTarget;
-    return std::min(target_reward, treasury);
-  }
-
-}  // namespace fc::vm::actor::builtin::reward
+}  // namespace fc::vm::actor

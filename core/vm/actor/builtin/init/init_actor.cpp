@@ -22,12 +22,19 @@ namespace fc::vm::actor::builtin::init {
     return Address::makeFromId(id);
   }
 
-  ACTOR_METHOD(exec) {
-    OUTCOME_TRY(exec_params, decodeActorParams<ExecParams>(params));
-    if (!isBuiltinActor(exec_params.code)) {
+  const ActorExports exports{
+      Exec::pair(),
+  };
+
+}  // namespace fc::vm::actor::builtin::init
+
+namespace fc::vm::actor {
+  using namespace builtin::init;
+  ACTOR_METHOD_IMPL(Exec) {
+    if (!isBuiltinActor(params.code)) {
       return VMExitCode::INIT_ACTOR_NOT_BUILTIN_ACTOR;
     }
-    if (isSingletonActor(exec_params.code)) {
+    if (isSingletonActor(params.code)) {
       return VMExitCode::INIT_ACTOR_SINGLETON_ACTOR;
     }
     OUTCOME_TRY(runtime.chargeGas(runtime::kInitActorExecCost));
@@ -40,16 +47,10 @@ namespace fc::vm::actor::builtin::init {
     OUTCOME_TRY(id_address, init_actor.addActor(store, actor_address));
     OUTCOME_TRY(runtime.createActor(
         id_address,
-        Actor{exec_params.code, ActorSubstateCID{kEmptyObjectCid}, 0, 0}));
-    OUTCOME_TRY(runtime.send(id_address,
-                             kConstructorMethodNumber,
-                             exec_params.params,
-                             message.value));
-    ExecReturn exec_return{id_address, actor_address};
-    OUTCOME_TRY(output, encodeActorReturn(exec_return));
+        Actor{params.code, ActorSubstateCID{kEmptyObjectCid}, 0, 0}));
+    OUTCOME_TRY(runtime.send(
+        id_address, kConstructorMethodNumber, params.params, message.value));
     OUTCOME_TRY(runtime.commitState(init_actor));
-    return std::move(output);
+    return Result{id_address, actor_address};
   }
-
-  const ActorExports exports{{kExecMethodNumber, ActorMethod(exec)}};
-}  // namespace fc::vm::actor::builtin::init
+}  // namespace fc::vm::actor

@@ -74,33 +74,26 @@ namespace fc::vm::actor::builtin::reward {
   static constexpr auto kRewardVestingFunction{VestingFunction::NONE};
   static const primitives::EpochDuration kRewardVestingPeriod{0};
 
-  struct AwardBlockRewardParams {
-    Address miner;
-    TokenAmount penalty;
-    TokenAmount gas_reward;
-    Power nominal_power;
+  ACTOR_METHOD_DECL(1, Construct){};
+
+  ACTOR_METHOD_DECL(2, AwardBlockReward) {
+    struct Params {
+      Address miner;
+      TokenAmount penalty;
+      TokenAmount gas_reward;
+      Power nominal_power;
+    };
   };
 
-  CBOR_TUPLE(AwardBlockRewardParams, miner, penalty, gas_reward, nominal_power)
+  ACTOR_METHOD_DECL(3, WithdrawReward){};
 
-  constexpr MethodNumber kAwardBlockRewardMethodNumber{2};
-  constexpr MethodNumber kWithdrawRewardMethodNumber{3};
+  CBOR_TUPLE(
+      AwardBlockReward::Params, miner, penalty, gas_reward, nominal_power)
 
   extern const ActorExports exports;
 
-  class RewardActor {
-   public:
-    static ACTOR_METHOD(construct);
-
-    static ACTOR_METHOD(awardBlockReward);
-
-    static ACTOR_METHOD(withdrawReward);
-
-   private:
-    static TokenAmount computeBlockReward(const State &state,
-                                          const TokenAmount &balance);
-  };
-
+  TokenAmount computeBlockReward(const State &state,
+                                 const TokenAmount &balance);
 }  // namespace fc::vm::actor::builtin::reward
 
 #endif  // CPP_FILECOIN_REWARD_ACTOR_HPP

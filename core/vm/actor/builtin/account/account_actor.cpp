@@ -42,13 +42,16 @@ namespace fc::vm::actor::builtin::account {
     return account_actor_state.address;
   }
 
-  ACTOR_METHOD(pubkeyAddress) {
-    OUTCOME_TRY(state, runtime.getCurrentActorStateCbor<AccountActorState>());
-    OUTCOME_TRY(result, codec::cbor::encode(state.address));
-    return InvocationOutput{Buffer{result}};
-  }
-
   const ActorExports exports = {
-      {kPubkeyAddressMethodNumber, ActorMethod(pubkeyAddress)},
+      PubkeyAddress::pair(),
   };
 }  // namespace fc::vm::actor::builtin::account
+
+namespace fc::vm::actor {
+  using namespace builtin::account;
+
+  ACTOR_METHOD_IMPL(PubkeyAddress) {
+    OUTCOME_TRY(state, runtime.getCurrentActorStateCbor<AccountActorState>());
+    return state.address;
+  }
+}  // namespace fc::vm::actor

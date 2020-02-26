@@ -8,60 +8,51 @@
 #include "vm/actor/actor_method.hpp"
 #include "vm/exit_code/exit_code.hpp"
 
-using fc::outcome::result;
-using fc::primitives::address::Protocol;
-using fc::vm::actor::decodeActorParams;
-using fc::vm::actor::kAccountCodeCid;
-using fc::vm::actor::builtin::payment_channel::PaymentChannelActor;
-using fc::vm::runtime::InvocationOutput;
-using fc::vm::runtime::Runtime;
-namespace outcome = fc::outcome;
+namespace fc::vm::actor {
+  using namespace builtin::payment_channel;
 
-ACTOR_METHOD(PaymentChannelActor::construct) {
-  if (actor.code != kAccountCodeCid)
-    return VMExitCode::PAYMENT_CHANNEL_WRONG_CALLER;
+  using primitives::address::Protocol;
 
-  OUTCOME_TRY(construct_params,
-              decodeActorParams<ConstructParameteres>(params));
-  if (construct_params.to.getProtocol() != Protocol::ID)
-    return VMExitCode::PAYMENT_CHANNEL_ILLEGAL_ARGUMENT;
-  OUTCOME_TRY(target_actor_code_id,
-              runtime.getActorCodeID(construct_params.to));
-  if (target_actor_code_id != kAccountCodeCid)
-    return VMExitCode::PAYMENT_CHANNEL_ILLEGAL_ARGUMENT;
+  ACTOR_METHOD_IMPL(Construct) {
+    if (actor.code != kAccountCodeCid)
+      return VMExitCode::PAYMENT_CHANNEL_WRONG_CALLER;
 
-  PaymentChannelActorState state{
-      runtime.getImmediateCaller(), construct_params.to, 0, 0, 0, {}};
+    if (params.to.getProtocol() != Protocol::ID)
+      return VMExitCode::PAYMENT_CHANNEL_ILLEGAL_ARGUMENT;
+    OUTCOME_TRY(target_actor_code_id, runtime.getActorCodeID(params.to));
+    if (target_actor_code_id != kAccountCodeCid)
+      return VMExitCode::PAYMENT_CHANNEL_ILLEGAL_ARGUMENT;
 
-  OUTCOME_TRY(runtime.commitState(state));
-  return fc::outcome::success();
-}
+    PaymentChannelActorState state{
+        runtime.getImmediateCaller(), params.to, 0, 0, 0, {}};
 
-ACTOR_METHOD(PaymentChannelActor::updateChannelState) {
-  OUTCOME_TRY(state,
-              runtime.getIpfsDatastore()->getCbor<PaymentChannelActorState>(
-                  actor.head));
-  Address signer = runtime.getImmediateCaller();
-  if (signer != state.from || signer != state.to) {
-    return VMExitCode::PAYMENT_CHANNEL_WRONG_CALLER;
+    OUTCOME_TRY(runtime.commitState(state));
+    return fc::outcome::success();
   }
 
-  OUTCOME_TRY(update_state_params,
-              decodeActorParams<UpdateChannelStateParameters>(params));
+  ACTOR_METHOD_IMPL(UpdateChannelState) {
+    OUTCOME_TRY(state,
+                runtime.getIpfsDatastore()->getCbor<PaymentChannelActorState>(
+                    actor.head));
+    Address signer = runtime.getImmediateCaller();
+    if (signer != state.from || signer != state.to) {
+      return VMExitCode::PAYMENT_CHANNEL_WRONG_CALLER;
+    }
 
-  // TODO (a.chernyshov) not implemented yet FIL-129
+    // TODO (a.chernyshov) not implemented yet FIL-129
 
-  return fc::outcome::success();
-}
+    return fc::outcome::success();
+  }
 
-ACTOR_METHOD(PaymentChannelActor::settle) {
-  // TODO (a.chernyshov) not implemented yet FIL-129
+  ACTOR_METHOD_IMPL(Settle) {
+    // TODO (a.chernyshov) not implemented yet FIL-129
 
-  return fc::outcome::success();
-}
+    return fc::outcome::success();
+  }
 
-ACTOR_METHOD(PaymentChannelActor::collect) {
-  // TODO (a.chernyshov) not implemented yet FIL-129
+  ACTOR_METHOD_IMPL(Collect) {
+    // TODO (a.chernyshov) not implemented yet FIL-129
 
-  return fc::outcome::success();
-}
+    return fc::outcome::success();
+  }
+}  // namespace fc::vm::actor

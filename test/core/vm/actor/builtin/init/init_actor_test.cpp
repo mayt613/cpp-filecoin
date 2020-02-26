@@ -26,7 +26,6 @@ using fc::vm::actor::InvocationOutput;
 using fc::vm::actor::kInitAddress;
 using fc::vm::actor::MethodNumber;
 using fc::vm::actor::MethodParams;
-using fc::vm::actor::builtin::init::ExecReturn;
 using fc::vm::message::UnsignedMessage;
 using fc::vm::runtime::MockRuntime;
 using InitActor::InitActorState;
@@ -39,8 +38,8 @@ TEST(InitActorTest, InitActorStateCbor) {
 
 /// Init actor exec params CBOR encoding and decoding
 TEST(InitActorTest, InitActorExecParamsCbor) {
-  InitActor::ExecParams params{CodeId{"010001020000"_cid},
-                               MethodParams{"de"_unhex}};
+  InitActor::Exec::Params params{CodeId{"010001020000"_cid},
+                                 MethodParams{"de"_unhex}};
   expectEncodeAndReencode(params, "82d82a470001000102000041de"_unhex);
 }
 
@@ -66,13 +65,6 @@ TEST(InitActorTest, AddActor) {
       3);
 }
 
-MethodParams execParams(const fc::CID &code, gsl::span<const uint8_t> params) {
-  return MethodParams{
-      fc::codec::cbor::encode(
-          InitActor::ExecParams{CodeId{code}, MethodParams{params}})
-          .value()};
-}
-
 /**
  * @given Init actor
  * @when Call exec with singleton @and with non-builtin actor code
@@ -83,11 +75,10 @@ TEST(InitActorExecText, ExecError) {
 
   EXPECT_OUTCOME_ERROR(
       VMExitCode::INIT_ACTOR_NOT_BUILTIN_ACTOR,
-      InitActor::exec({}, runtime, execParams("010001020000"_cid, {})));
-  EXPECT_OUTCOME_ERROR(
-      VMExitCode::INIT_ACTOR_SINGLETON_ACTOR,
-      InitActor::exec(
-          {}, runtime, execParams(fc::vm::actor::kInitCodeCid, {})));
+      InitActor::Exec::M::apply({}, runtime, {CodeId{"010001020000"_cid}, {}}));
+  EXPECT_OUTCOME_ERROR(VMExitCode::INIT_ACTOR_SINGLETON_ACTOR,
+                       InitActor::Exec::M::apply(
+                           {}, runtime, {fc::vm::actor::kInitCodeCid, {}}));
 }
 
 /**
@@ -143,9 +134,8 @@ TEST(InitActorExecText, ExecSuccess) {
   Address actor_address{Address::makeActorExec(
       Buffer{fc::primitives::address::encode(message.from)}.putUint64(
           message.nonce))};
-  ExecReturn exec_return{id_address, actor_address};
-  EXPECT_OUTCOME_TRUE(result, encodeActorReturn(exec_return));
-  EXPECT_OUTCOME_EQ(InitActor::exec({}, runtime, execParams(code, params)),
+  InitActor::Exec::Result result{id_address, actor_address};
+  EXPECT_OUTCOME_EQ(InitActor::Exec::M::apply({}, runtime, {code, params}),
                     result);
 
   EXPECT_OUTCOME_TRUE(address,

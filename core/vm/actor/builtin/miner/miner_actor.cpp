@@ -11,3 +11,12 @@ namespace fc::vm::actor::builtin::miner {
 
   const ActorExports exports{};
 }  // namespace fc::vm::actor::builtin::miner
+
+namespace fc::vm::actor {
+  using namespace builtin::miner;
+
+  ACTOR_METHOD_IMPL(Construct) {
+    // TODO(turuslan): implement, didn't link
+    return outcome::success();
+  }
+}  // namespace fc::vm::actor

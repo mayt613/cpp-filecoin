@@ -19,37 +19,28 @@ namespace fc::vm::actor::builtin::payment_channel {
   using fc::vm::runtime::InvocationOutput;
   using fc::vm::runtime::Runtime;
 
-  /**
-   * Construct method parameters
-   */
-  struct ConstructParameteres {
-    /** Voucher receiver */
-    Address to;
+  ACTOR_METHOD_DECL(1, Construct) {
+    struct Params {
+      /** Voucher receiver */
+      Address to;
+    };
   };
 
-  /**
-   * UpdateChannelState method parameters
-   */
-  struct UpdateChannelStateParameters {
-    SignedVoucher signed_voucher;
-    Buffer secret;
-    Buffer proof;
+  ACTOR_METHOD_DECL(2, UpdateChannelState) {
+    struct Params {
+      SignedVoucher signed_voucher;
+      Buffer secret;
+      Buffer proof;
+    };
   };
 
-  class PaymentChannelActor {
-   public:
-    static ACTOR_METHOD(construct);
+  ACTOR_METHOD_DECL(3, Settle){};
 
-    static ACTOR_METHOD(updateChannelState);
+  ACTOR_METHOD_DECL(4, Collect){};
 
-    static ACTOR_METHOD(settle);
+  CBOR_TUPLE(Construct::Params, to)
 
-    static ACTOR_METHOD(collect);
-  };
-
-  CBOR_TUPLE(ConstructParameteres, to)
-
-  CBOR_TUPLE(UpdateChannelStateParameters, signed_voucher, secret, proof)
+  CBOR_TUPLE(UpdateChannelState::Params, signed_voucher, secret, proof)
 
 }  // namespace fc::vm::actor::builtin::payment_channel
 

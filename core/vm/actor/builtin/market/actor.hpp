@@ -15,29 +15,31 @@ namespace fc::vm::actor::builtin::market {
   using primitives::DealId;
   using primitives::SectorSize;
 
-  constexpr MethodNumber kVerifyDealsOnSectorProveCommitMethodNumber{6};
-  constexpr MethodNumber kOnMinerSectorsTerminateMethodNumber{7};
-  constexpr MethodNumber kComputeDataCommitmentMethodNumber{8};
-
-  struct VerifyDealsOnSectorProveCommitParams {
-    std::vector<DealId> deals;
-    ChainEpoch sector_expiry;
+  ACTOR_METHOD_DECL(6, VerifyDealsOnSectorProveCommit) {
+    struct Params {
+      std::vector<DealId> deals;
+      ChainEpoch sector_expiry;
+    };
   };
 
-  struct OnMinerSectorsTerminateParams {
-    std::vector<DealId> deals;
+  ACTOR_METHOD_DECL(7, OnMinerSectorsTerminate) {
+    struct Params {
+      std::vector<DealId> deals;
+    };
   };
 
-  struct ComputeDataCommitmentParams {
-    std::vector<DealId> deals;
-    SectorSize sector_size;
+  ACTOR_METHOD_DECL(8, ComputeDataCommitment) {
+    struct Params {
+      std::vector<DealId> deals;
+      SectorSize sector_size;
+    };
   };
 
-  CBOR_TUPLE(VerifyDealsOnSectorProveCommitParams, deals, sector_expiry)
+  CBOR_TUPLE(VerifyDealsOnSectorProveCommit::Params, deals, sector_expiry)
 
-  CBOR_TUPLE(OnMinerSectorsTerminateParams, deals)
+  CBOR_TUPLE(OnMinerSectorsTerminate::Params, deals)
 
-  CBOR_TUPLE(ComputeDataCommitmentParams, deals, sector_size)
+  CBOR_TUPLE(ComputeDataCommitment::Params, deals, sector_size)
 }  // namespace fc::vm::actor::builtin::market
 
 #endif  // CPP_FILECOIN_CORE_VM_ACTOR_BUILTIN_MARKET_ACTOR_HPP
