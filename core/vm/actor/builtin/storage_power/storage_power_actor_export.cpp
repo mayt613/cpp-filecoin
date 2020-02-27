@@ -48,7 +48,7 @@ namespace fc::vm::actor::builtin::storage_power {
                                          StoragePowerActor &state,
                                          const Address &miner) {
     OUTCOME_TRY(amount_slashed, state.deleteMiner(miner));
-    OUTCOME_TRY(miner::OnDeleteMiner::M::send(runtime, miner, {}, 0));
+    OUTCOME_TRY(miner::OnDeleteMiner::send(runtime, miner, {}, 0));
     OUTCOME_TRY(runtime.sendFunds(kBurntFundsActorAddress, amount_slashed));
     return outcome::success();
   }

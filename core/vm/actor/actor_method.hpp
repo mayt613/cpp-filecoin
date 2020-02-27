@@ -99,12 +99,27 @@ namespace fc::vm::actor {
     }
   };
 
+  template <typename T>
+  struct SendM {
+    using Result = typename T::Result;
+    using Params = typename T::Params;
+
+    auto operator()(Runtime &runtime,
+                    const Address &address,
+                    const Params &params,
+                    TokenAmount value) const {
+      return runtime.sendPR<Result>(address, T::Number, params, value);
+    }
+  };
+
   template <uint64_t number, typename T>
   struct Method {
     using Params = None;
     using Result = None;
     static constexpr MethodNumber Number{number};
     using M = MethodM<T>;
+
+    using Send = SendM<T>;
 
     static auto pair() {
       return std::make_pair(Number, ActorMethod(M::applyRaw));
