@@ -22,7 +22,7 @@ BlockProducerTest::Address BlockProducerTest::getAddress(uint64_t id) const {
 BlockProducerTest::Tipset BlockProducerTest::getParentTipset() const {
   std::vector<CID> cids{decodeCID(config::kParentTipsetBlocks[0]),
                         decodeCID(config::kParentTipsetBlocks[1])};
-  return Tipset{.cids = std::move(cids), .height = 0, .blks = {}};
+  return Tipset{.cids = std::move(cids), .blks = {}, .height = 0};
 }
 
 BlockProducerTest::EPostProof BlockProducerTest::getEPostProof() const {
