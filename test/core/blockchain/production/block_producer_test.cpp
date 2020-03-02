@@ -31,7 +31,7 @@ BlockProducerTest::EPostProof BlockProducerTest::getEPostProof() const {
   PostRandomness randomness{};
   std::copy_n(config::kPostRand.begin(), randomness.size(), randomness.begin());
   return EPostProof{
-      .candidates = {}, .proof = {proof_bytes}, .post_rand = {randomness}};
+      .proof = {proof_bytes}, .post_rand = {randomness}, .candidates = {}};
 }
 
 BlockProducerTest::Ticket BlockProducerTest::getTicket() const {
