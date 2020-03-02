@@ -15,7 +15,6 @@
 #include "primitives/address/address.hpp"
 #include "primitives/address/address_codec.hpp"
 #include "primitives/big_int.hpp"
-#include "storage/ipld/impl/ipld_block_impl.hpp"
 #include "vm/actor/actor.hpp"
 
 namespace fc::vm::message {
@@ -34,36 +33,11 @@ namespace fc::vm::message {
   using crypto::signature::Signature;
   using primitives::BigInt;
   using primitives::address::Address;
-  using storage::ipld::IPLDBlockImpl;
 
   /**
    * @brief UnsignedMessage struct
    */
-  struct UnsignedMessage : public IPLDBlockImpl {
-    UnsignedMessage()
-        : IPLDBlockImpl{
-            CID::Version::V1, HashType::blake2b_256, ContentType::DAG_CBOR} {}
-
-    UnsignedMessage(Address to,
-                    Address from,
-                    uint64_t nonce,
-                    BigInt value,
-                    BigInt gasPrice,
-                    BigInt gasLimit,
-                    MethodNumber method,
-                    MethodParams params)
-        : IPLDBlockImpl{CID::Version::V1,
-                        HashType::blake2b_256,
-                        ContentType::DAG_CBOR},
-          to{std::move(to)},
-          from{std::move(from)},
-          nonce{nonce},
-          value{std::move(value)},
-          gasPrice{std::move(gasPrice)},
-          gasLimit{std::move(gasLimit)},
-          method{method},
-          params{std::move(params)} {}
-
+  struct UnsignedMessage {
     Address to;
     Address from;
 
@@ -76,13 +50,6 @@ namespace fc::vm::message {
 
     MethodNumber method{};
     MethodParams params{};
-
-    common::Buffer serialize() const override {
-      auto data = codec::cbor::encode<UnsignedMessage>(*this);
-      BOOST_ASSERT_MSG(data.has_value(),
-                       "UnsignedMessage: CBOR serialize failed");
-      return common::Buffer{std::move(data.value())};
-    }
 
     /**
      * @brief Message equality operator

@@ -8,9 +8,11 @@
 #include <vector>
 
 #include <gsl/span>
+
 #include "clock/chain_epoch_clock.hpp"
 #include "codec/cbor/cbor.hpp"
 #include "common/visitor.hpp"
+#include "primitives/cid/cid_of_cbor.hpp"
 #include "storage/amt/amt.hpp"
 #include "storage/ipfs/impl/in_memory_datastore.hpp"
 
@@ -20,6 +22,7 @@ namespace fc::blockchain::production {
   using crypto::signature::BlsSignature;
   using crypto::signature::Secp256k1Signature;
   using primitives::block::BlockHeader;
+  using primitives::cid::CidParams;
   using storage::amt::Amt;
   using storage::amt::Root;
   using storage::ipfs::InMemoryDatastore;
@@ -85,7 +88,7 @@ namespace fc::blockchain::production {
         .height = static_cast<uint64_t>(current_epoch),
         .parent_state_root = std::move(vm_result.state_root),
         .parent_message_receipts = std::move(vm_result.message_receipts),
-        .messages = msg_meta.getCID(),
+        .messages = CidParams::cidOf(msg_meta),
         .bls_aggregate = {bls_aggregate_sign.begin(), bls_aggregate_sign.end()},
         .timestamp = static_cast<uint64_t>(now.unixTime().count()),
         .block_sig = {},  // Block must be signed be Actor Miner
@@ -130,13 +133,11 @@ namespace fc::blockchain::production {
           }));
     }
     OUTCOME_TRY(bls_root_cid, bls_messages_amt.flush());
-    OUTCOME_TRY(bls_root, bls_backend->getCbor<Root>(bls_root_cid));
     OUTCOME_TRY(secp_root_cid, secp_messages_amt.flush());
-    OUTCOME_TRY(secp_root, secp_backend->getCbor<Root>(secp_root_cid));
-    MsgMeta msg_meta{};
-    msg_meta.bls_messages = bls_root.getCID();
-    msg_meta.secpk_messages = secp_root.getCID();
-    return msg_meta;
+    return MsgMeta{
+        .bls_messages = bls_root_cid,
+        .secpk_messages = secp_root_cid,
+    };
   }
 }  // namespace fc::blockchain::production
 

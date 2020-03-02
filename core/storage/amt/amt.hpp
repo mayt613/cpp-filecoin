@@ -14,7 +14,6 @@
 #include "common/which.hpp"
 #include "primitives/cid/cid.hpp"
 #include "storage/ipfs/datastore.hpp"
-#include "storage/ipld/impl/ipld_block_impl.hpp"
 
 namespace fc::storage::amt {
   enum class AmtError {
@@ -33,7 +32,6 @@ namespace fc::storage::amt {
 
   using common::which;
   using Value = ipfs::IpfsDatastore::Value;
-  using ipld::IPLDBlockImpl;
 
   struct Node {
     using Ptr = std::shared_ptr<Node>;
@@ -119,20 +117,10 @@ namespace fc::storage::amt {
     return s;
   }
 
-  struct Root : public IPLDBlockImpl {
-    Root()
-        : IPLDBlockImpl{
-            CID::Version::V1, HashType::blake2b_256, ContentType::DAG_CBOR} {}
-
+  struct Root {
     uint64_t height{};
     uint64_t count{};
     Node node;
-
-    common::Buffer serialize() const override {
-      auto data = codec::cbor::encode<Root>(*this);
-      BOOST_ASSERT_MSG(data.has_value(), "AMT Root: CBOR codec error");
-      return common::Buffer{std::move(data.value())};
-    }
   };
 
   CBOR_TUPLE(Root, height, count, node)

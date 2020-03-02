@@ -12,6 +12,7 @@ target_link_libraries(cid
     Boost::boost
     blake2
     cbor
+    filecoin_hasher
     p2p::p2p_cid
     )
 

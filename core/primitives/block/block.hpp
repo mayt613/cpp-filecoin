@@ -19,7 +19,6 @@
 #include "primitives/ticket/epost_ticket_codec.hpp"
 #include "primitives/ticket/ticket.hpp"
 #include "primitives/ticket/ticket_codec.hpp"
-#include "storage/ipld/impl/ipld_block_impl.hpp"
 #include "vm/message/message.hpp"
 
 namespace fc::primitives::block {
@@ -29,7 +28,6 @@ namespace fc::primitives::block {
   using primitives::ticket::Ticket;
   // TODO (yuraz) : FIL-142 replace by crypto::signature::Signature
   using Signature = std::vector<uint8_t>;
-  using storage::ipld::IPLDBlockImpl;
   using vm::message::SignedMessage;
   using vm::message::UnsignedMessage;
 
@@ -49,18 +47,9 @@ namespace fc::primitives::block {
     uint64_t fork_signaling;
   };
 
-  struct MsgMeta : public IPLDBlockImpl {
-    MsgMeta()
-        : IPLDBlockImpl{
-            CID::Version::V1, HashType::blake2b_256, ContentType::DAG_CBOR} {}
+  struct MsgMeta {
     CID bls_messages;
     CID secpk_messages;
-
-    common::Buffer serialize() const override {
-      auto data = codec::cbor::encode<MsgMeta>(*this);
-      BOOST_ASSERT_MSG(data.has_value(), "MsgMeta: CBOR codec error");
-      return common::Buffer{std::move(data.value())};
-    }
   };
 
   struct Block {

@@ -6,41 +6,27 @@
 #ifndef FILECOIN_STORAGE_IPLD_BLOCK_HPP
 #define FILECOIN_STORAGE_IPLD_BLOCK_HPP
 
+#include "codec/cbor/cbor.hpp"
 #include "common/buffer.hpp"
-#include "primitives/cid/cid.hpp"
+#include "primitives/cid/cid_of_cbor.hpp"
 
 namespace fc::storage::ipld {
+  using common::Buffer;
+  using primitives::cid::CidParams;
+
   /**
    * @class Interface for various data structure, linked with CID
    */
-  class IPLDBlock {
-   public:
-    /**
-     * @brief Destructor
-     */
-    virtual ~IPLDBlock() = default;
-
-    /**
-     * @brief Get CID of the data structure
-     * @return IPLD identificator
-     */
-    virtual const CID &getCID() const = 0;
-
-    /**
-     * @brief Get data structure bytes from cache or generate new
-     * @return Serialized value
-     */
-    virtual const common::Buffer &getRawBytes() const = 0;
-
-   protected:
-    /**
-     * @brief Optionally used for generating CID
-     *        Children class must overload it to support structure serialization
-     * @return Serialized value
-     */
-    virtual common::Buffer serialize() const {
-      return {};
+  struct IpldBlock {
+    // TODO: outcome
+    template <typename T>
+    static IpldBlock create(const T &value) {
+      auto bytes = CidParams::encode(value);
+      return {CidParams::get<T>().compute(bytes), bytes};
     }
+
+    CID cid;
+    Buffer bytes;
   };
 }  // namespace fc::storage::ipld
 
