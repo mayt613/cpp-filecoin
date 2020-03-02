@@ -79,6 +79,7 @@ namespace fc::blockchain::production {
      * @param messages - messages to include in the new Block
      * @return Generated meta-data
      */
-    MsgMeta getMessagesMeta(const std::vector<SignedMessage> &messages) const;
+    static outcome::result<MsgMeta> getMessagesMeta(
+        const std::vector<SignedMessage> &messages);
   };
 }  // namespace fc::blockchain::production

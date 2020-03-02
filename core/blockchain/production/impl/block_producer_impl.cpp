@@ -40,7 +40,7 @@ namespace fc::blockchain::production {
         epoch_{std::move(epoch_clock)},
         chain_weight_calculator_{std::move(weight_calculator)},
         bls_provider_{std::move(crypto_provider)},
-        vm_interpreter_{interpreter} {}
+        vm_interpreter_{std::move(interpreter)} {}
 
   outcome::result<BlockProducer::Block> BlockProducerImpl::generate(
       primitives::address::Address miner_address,
@@ -56,7 +56,7 @@ namespace fc::blockchain::production {
                 chain_weight_calculator_->calculateWeight(parent_tipset));
     std::vector<SignedMessage> messages =
         message_storage_->getTopScored(config::kBlockMaxMessagesCount);
-    MsgMeta msg_meta = getMessagesMeta(messages);
+    OUTCOME_TRY(msg_meta, getMessagesMeta(messages));
     std::vector<UnsignedMessage> bls_messages;
     std::vector<SignedMessage> secp_messages;
     std::vector<crypto::bls::Signature> bls_signatures;
@@ -107,35 +107,32 @@ namespace fc::blockchain::production {
     if (tipset.has_error()) {
       return BlockProducerError::PARENT_TIPSET_INVALID_CONTENT;
     }
-    return std::move(tipset.value());
+    return tipset.value();
   }
 
-  BlockProducerImpl::MsgMeta BlockProducerImpl::getMessagesMeta(
-      const std::vector<SignedMessage> &messages) const {
+  outcome::result<BlockProducerImpl::MsgMeta>
+  BlockProducerImpl::getMessagesMeta(
+      const std::vector<SignedMessage> &messages) {
     auto bls_backend = std::make_shared<InMemoryDatastore>();
     auto secp_backend = std::make_shared<InMemoryDatastore>();
     Amt bls_messages_amt{bls_backend};
     Amt secp_messages_amt{secp_backend};
     for (size_t index = 0; index < messages.size(); ++index) {
       const SignedMessage &msg = messages.at(index);
-      visit_in_place(
+      BOOST_OUTCOME_TRY_INVOKE_TRY1(visit_in_place(
           msg.signature,
           [index, &msg, &bls_messages_amt](const BlsSignature &signature) {
-            auto result = bls_messages_amt.setCbor(index, msg);
-            BOOST_ASSERT_MSG(!result.has_error(),
-                             "BlockGenerator: failed to create messages AMT");
+            return bls_messages_amt.setCbor(index, msg);
           },
           [index, &msg, &secp_messages_amt](
               const Secp256k1Signature &signature) {
-            auto result = secp_messages_amt.setCbor(index, msg);
-            BOOST_ASSERT_MSG(!result.has_error(),
-                             "BlockGenerator: failed to create messages AMT");
-          });
+            return secp_messages_amt.setCbor(index, msg);
+          }));
     }
-    Root bls_root =
-        bls_backend->getCbor<Root>(bls_messages_amt.flush().value()).value();
-    Root secp_root =
-        secp_backend->getCbor<Root>(secp_messages_amt.flush().value()).value();
+    OUTCOME_TRY(bls_root_cid, bls_messages_amt.flush());
+    OUTCOME_TRY(bls_root, bls_backend->getCbor<Root>(bls_root_cid));
+    OUTCOME_TRY(secp_root_cid, secp_messages_amt.flush());
+    OUTCOME_TRY(secp_root, secp_backend->getCbor<Root>(secp_root_cid));
     MsgMeta msg_meta{};
     msg_meta.bls_messages = bls_root.getCID();
     msg_meta.secpk_messages = secp_root.getCID();

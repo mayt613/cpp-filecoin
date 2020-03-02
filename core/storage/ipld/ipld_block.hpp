@@ -38,9 +38,7 @@ namespace fc::storage::ipld {
      *        Children class must overload it to support structure serialization
      * @return Serialized value
      */
-    virtual common::Buffer serialize() const {
-      return {};
-    }
+    virtual common::Buffer serialize() const = 0;
   };
 }  // namespace fc::storage::ipld
 
