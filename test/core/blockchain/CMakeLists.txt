@@ -5,3 +5,4 @@
 
 add_subdirectory(message_pool)
 add_subdirectory(production)
+add_subdirectory(validation)

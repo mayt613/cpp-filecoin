@@ -123,7 +123,7 @@ TEST_F(BlockProducerTest, Main) {
               aggregated_signature.begin());
 
   EXPECT_CALL(*bls_provider, aggregateSignatures(_))
-      .WillOnce(testing::Return(fc::outcome::success(aggregated_signature)));
+      .WillOnce(testing::Return(aggregated_signature));
 
   /**
    * Initialize VM Interpreter

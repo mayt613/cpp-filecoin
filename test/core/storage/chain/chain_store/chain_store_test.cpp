@@ -6,7 +6,6 @@
 #include "storage/chain/impl/chain_store_impl.hpp"
 
 #include <gtest/gtest.h>
-#include "blockchain/impl/block_validator_impl.hpp"
 #include "blockchain/impl/weight_calculator_impl.hpp"
 #include "common/hexutil.hpp"
 #include "primitives/cid/cid_of_cbor.hpp"
@@ -15,9 +14,10 @@
 #include "storage/ipfs/impl/ipfs_block_service.hpp"
 #include "testutil/cbor.hpp"
 #include "testutil/literals.hpp"
+#include "testutil/mocks/blockchain/block_validator/block_validator_mock.hpp"
 #include "testutil/outcome.hpp"
 
-using fc::blockchain::block_validator::BlockValidatorImpl;
+using fc::blockchain::block_validator::BlockValidatorMock;
 using fc::blockchain::weight::WeightCalculatorImpl;
 using fc::crypto::signature::Signature;
 using fc::primitives::BigInt;
@@ -29,6 +29,7 @@ using fc::storage::ipfs::InMemoryDatastore;
 using fc::storage::ipfs::IpfsBlockService;
 
 using fc::primitives::cid::getCidOfCbor;
+using testing::_;
 
 struct ChainStoreTest : public ::testing::Test {
   BlockHeader makeBlock() {
@@ -66,7 +67,7 @@ struct ChainStoreTest : public ::testing::Test {
         std::make_shared<InMemoryDatastore>());
     auto data_store = std::make_shared<ChainDataStoreImpl>(
         std::make_shared<InMemoryDatastore>());
-    auto block_validator = std::make_shared<BlockValidatorImpl>();
+    auto block_validator = std::make_shared<BlockValidatorMock>();
     auto weight_calculator = std::make_shared<WeightCalculatorImpl>();
 
     EXPECT_OUTCOME_TRUE(store,
