@@ -4,4 +4,3 @@
 #
 
 add_subdirectory(fs)
-add_subdirectory(proof_verifier)

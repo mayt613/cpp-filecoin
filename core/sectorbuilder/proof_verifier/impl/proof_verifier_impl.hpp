@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef CPP_FILECOIN_CORE_PROOF_VERIFIER_IMPL_HPP
-#define CPP_FILECOIN_CORE_PROOF_VERIFIER_IMPL_HPP
+#ifndef CPP_FILECOIN_CORE_SECTORBUILDER_PROOF_VERIFIER_IMPL_HPP
+#define CPP_FILECOIN_CORE_SECTORBUILDER_PROOF_VERIFIER_IMPL_HPP
 
-#include "sectorbuilder/proof_verifier.hpp"
+#include "sectorbuilder/proof_verifier/proof_verifier.hpp"
 
 namespace fc::sectorbuilder {
   class ProofVerifierImpl : public ProofVerifier {
@@ -27,4 +27,4 @@ namespace fc::sectorbuilder {
 
 }  // namespace fc::sectorbuilder
 
-#endif  // CPP_FILECOIN_CORE_PROOF_VERIFIER_IMPL_HPP
+#endif  // CPP_FILECOIN_CORE_SECTORBUILDER_PROOF_VERIFIER_IMPL_HPP

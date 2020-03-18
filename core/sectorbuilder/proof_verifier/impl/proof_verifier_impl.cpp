@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "sectorbuilder/impl/proof_verifier_impl.hpp"
+#include "sectorbuilder/proof_verifier/impl/proof_verifier_impl.hpp"
 
 #include "proofs/proofs.hpp"
 

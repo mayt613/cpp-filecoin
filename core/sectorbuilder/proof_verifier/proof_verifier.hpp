@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef CPP_FILECOIN_CORE_PROOF_VERIFIER_HPP
-#define CPP_FILECOIN_CORE_PROOF_VERIFIER_HPP
+#ifndef CPP_FILECOIN_CORE_SECTORBUILDER_PROOF_VERIFIER_HPP
+#define CPP_FILECOIN_CORE_SECTORBUILDER_PROOF_VERIFIER_HPP
 
 #include "primitives/sector/sector.hpp"
 
@@ -24,4 +24,4 @@ namespace fc::sectorbuilder {
   };
 }  // namespace fc::sectorbuilder
 
-#endif  // CPP_FILECOIN_CORE_PROOF_VERIFIER_HPP
+#endif  // CPP_FILECOIN_CORE_SECTORBUILDER_PROOF_VERIFIER_HPP
