@@ -4,7 +4,8 @@
 #
 
 add_library(fs
-        types.cpp
+        impl/types.cpp
+        impl/fs_impl.cpp
         )
 
 target_link_libraries(fs

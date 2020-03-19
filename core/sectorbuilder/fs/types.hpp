@@ -17,6 +17,17 @@ using fc::storage::filestore::Path;
 
 namespace fc::sectorbuilder {
 
+  struct PathInfo {
+    bool is_cached;
+    int weight;
+  };
+
+  struct PathConfig {
+      std::string path;
+      bool is_cached;
+      int weight;
+  };
+
   enum class DataType {
     DATA_CACHE = 1,
     DATA_STAGING,
